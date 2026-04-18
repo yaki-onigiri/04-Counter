@@ -42,13 +42,14 @@
 
 ### 拡張機能
 
-・ボタン長押しによる連続カウント機能
+・増減ボタン（+1/-1）両方に長押しによる連続カウント機能を実装
 
 ### UX改善
 
 ・マウスをボタン外に移動しても、押している間はカウント継続
 ・マウスを離したタイミングで確実に停止（documentで制御）
 ・長押し時にクリックイベントが重複しないように制御
+・どのボタンから操作を開始しても、タイマー処理が1つだけ動作するように制御
 
 ---
 
@@ -70,25 +71,33 @@
 
     ・mouseup を document に設定し、操作取りこぼしを防止
 
+    ・intervalId を1つに統一し、clearInterval による確実な停止制御を実装
+
+    ・ボタン間の操作時にタイマーが重複しないように、mousedown 時に必ず初期化処理を実行
+
 ---
 
 ## 使用技術
 
-・HTML：構造の定義
+    ・HTML：構造の定義
 
-・CSS：レイアウト
+    ・CSS：レイアウト
 
-・JavaScript（vanilla JS）：ロジック定義
+    ・JavaScript（vanilla JS）：ロジック定義
 
 ---
 
 ## 学習ポイント
 
-・getElementById を使ったDOM取得
-・addEventListener によるクリックイベント処理
-・状態管理（isPressing / isLongPress）による挙動制御
-・setInterval / clearInterval を使った繰り返し処理
-・複数イベント（click / mousedown / mouseup）の競合制御
+    ・getElementById を使ったDOM取得
+
+    ・addEventListener によるクリックイベント処理
+
+    ・状態管理（isPressing / isLongPress）による挙動制御
+
+    ・setInterval / clearInterval を使った繰り返し処理
+
+    ・複数イベント（click / mousedown / mouseup）の競合制御
 
 ---
 
@@ -110,9 +119,12 @@
 ## 今後の改善予定
 
     ・LocalStorage を使ったデータ保存
+
     ・デザインの改善（UI/UX向上）
-    ・減算ボタンにも長押し機能を追加
+
     ・長押し時のカウント速度を段階的に加速させる
+    
+    ・スマートフォン対応（touchイベントの実装）
 
 ---
 

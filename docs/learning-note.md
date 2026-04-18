@@ -152,36 +152,152 @@
 
 ▼ 具体的な方法
 
-1. mousedown で「押している状態（isPressing）」をONにする
-2. setInterval でカウントを増やす処理を繰り返す
-3. mouseup で状態をOFFにして処理を停止する
-4. クリック（click）と長押し（isPressing）が重ならないように制御する
+    1. mousedown で「押している状態（isPressing）」をONにする
+    2. setInterval でカウントを増やす処理を繰り返す
+    3. mouseup で状態をOFFにして処理を停止する
+    4. クリック（click）と長押し（isPressing）が重ならないように制御する
 
 ---
 
 ▼ 使用したコード・技術
 
-・addEventListener("mousedown")
-・addEventListener("mouseup")
-・setInterval()
-・clearInterval()
-・フラグ管理（isPressing / isLongPress）
+    ・addEventListener("mousedown")
+    ・addEventListener("mouseup")
+    ・setInterval()
+    ・clearInterval()
+    ・フラグ管理（isPressing / isLongPress）
 
 ---
 
 ▼ 重要なポイント
 
-・setInterval は放置すると動き続けるため、必ず clearInterval が必要
-・click は「mousedown → mouseup の後に発火する」ため、長押しと競合する
-・「押しているか」と「カーソル位置」は別の概念
-・停止処理は document に書くことで、取りこぼしを防げる
+    ・setInterval は放置すると動き続けるため、必ず clearInterval が必要
+    ・click は「mousedown → mouseup の後に発火する」ため、長押しと競合する
+    ・「押しているか」と「カーソル位置」は別の概念
+    ・停止処理は document に書くことで、取りこぼしを防げる
 
 ---
 
 ▼ 学んだこと
 
-『長押し機能』は単純なクリック処理ではなく、「状態管理」と「繰り返し処理」を組み合わせて実現する必要がある、と理解した
+    『長押し機能』は単純なクリック処理ではなく、「状態管理」と「繰り返し処理」を組み合わせて実現する必要がある、と理解した
 
-また、イベントはそれぞれ独立して動くため、意図しない動作を防ぐにはフラグで制御することが重要だ、と学んだ
+    また、イベントはそれぞれ独立して動くため、意図しない動作を防ぐにはフラグで制御することが重要だ、と学んだ
+
+===
+
+## 26/04/18
+
+### 長押し機能の安定化（+1 / -1 両方対応・バグ防止）
+
+▼ 目的
+
+    ボタンを長押ししたとき、カウントが連続で増減する機能を実装しつつ、どんな操作（長押し・連打・ボタン切替）でもバグが起きないようにする。
+
+---
+
+▼ 仕組み
+
+    長押しは「ボタンを押している間、同じ処理を繰り返す動き」なので、setInterval を使って一定時間ごとに処理を実行する
+
+    ただし、そのまま使うと以下の問題が起きる
+        ・複数の setInterval が同時に動く（暴走）
+        ・click と mousedown が動いて二重カウント
+
+    この問題を防ぐために、以下の2つで制御する
+        ・isPressing → 今押しているかどうか
+        ・isLongPress → 長押しかどうか
+
+▼ 具体的な方法
+
+    1.ボタンを押したとき（mousedown）
+    
+        ・すでに押していたら何もしない（多重起動防止）
+
+        ・長押しフラグをリセット
+
+        ・setInterval を開始
+    
+    2.長押し中（setInterval）
+
+        ・長押し状態を true にする
+
+        ・カウント処理を繰り返す
+    
+    3.ボタンを離したとき（mouseup）
+
+        ・押している状態を解除
+
+        ・setInterval を停止
+    
+    4.clickイベント
+
+        ・長押し中なら処理を止める（return）
+
+---
+
+▼ 使用したコード・技術
+
+    ⓵
+    let isPressing = false;
+    let isLongPress = false;
+    let intervalId;
+
+    ⓶
+    incrementBtn.addEventListener("mousedown", () => {
+
+        clearInterval(intervalId);　// 前処理を止める
+
+        if (isPressing) return;
+
+        isPressing = true;
+        isLongPress = false;
+
+        intervalId = setInterval(() => {
+
+            isLongPress = true;
+
+            if (isPressing) {
+                count++;
+                updateDisplay();
+            }
+        }, 200);
+    });
+
+    ⓷
+    document.addEventListener("mouseup", () => {
+        isPreesing = false;
+        isLongPress = false;
+
+        clearInterval(intervalId);
+    });
+
+---
+
+▼ 重要なポイント
+
+    ・setInterval は複数同時に動くため、必ず clearInterval で止める必要がある
+    
+    ・intervalId は「タイマーを止めるための番号」
+
+    ・mousedown の最初で clearInterval を実行すると、どんな操作でも安定する
+
+    ・click は長押し中でも発火するため、isLongPress で制御しないとバグになる
+
+    ・停止処理は document にまとめることで「取りこぼし」を防げる
+
+---
+
+▼ 学んだこと
+
+    ・「動くコード」と「壊れないコード」は違う
+
+    ・イベント処理は「開始・継続・停止」をセットで考える必要がある
+
+    ・状態（フラグ）で制御すると、複雑な動きでも整理できる
+
+    ・同じ役割の処理（例：interval）は1つにまとめるとバグが減る
+
+    ・エラーやバグの原因は「処理が複数動いている」ケースが多い
 
 ===

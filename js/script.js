@@ -4,14 +4,10 @@ const decrementBtn = document.getElementById("decrement");
 const resetBtn = document.getElementById("reset");
 
 let count = 0;
-
-// ボタン長押しを検知するためのコード①
 let isPressing = false;
-
-// ボタン長押ししている間だけ連続カウントするコード①
 let intervalId;
 
-// ボタンを長押しした場合のclickを無効化するコード①
+// 「長押し＋クリック」が重複してカウントがズレるのを防ぐ.1
 let isLongPress = false;
 
 function updateDisplay() {
@@ -20,15 +16,16 @@ function updateDisplay() {
 
 incrementBtn.addEventListener("click", function() {
 
-    // ボタンを長押しした場合のclickを無効化するコード③
     if (isLongPress) return;
 
     count++;
     updateDisplay();
 });
 
-// ボタン長押ししている間だけ連続カウントするコード②-1
 incrementBtn.addEventListener("mousedown", () => {
+
+    // どんな状態でも一旦リセットしてから始めるためのコード
+    clearInterval(intervalId);
 
     // interval の多重起動を防ぐためのコード
     if (isPressing) return;
@@ -40,26 +37,14 @@ incrementBtn.addEventListener("mousedown", () => {
 
     intervalId = setInterval(() => {
 
-        // ボタンを長押しした場合のclickを無効化するコード②
         isLongPress = true;
 
-        // ボタン長押ししている間だけ連続カウントするコード②-2
         if (isPressing) {
             count++;
             updateDisplay();
         }
     }, 200);
 });
-
-// ボタン長押し終了で停止するコード
-document.addEventListener("mouseup", () => {
-    isPressing = false;
-    clearInterval(intervalId);
-
-    // バグ調査をしやすくするため、状態をリセットするコード
-    intervalId = null;
-});
-    // increment ⇒ document にすることで、カーソルがボタン外になっても連続カウントが検知されるコードになる
 
 // ボタン長押し中にカーソルがボタン外に出たときカウントを停止するコード
 // incrementBtn.addEventListener("mouseleave", () => {
@@ -69,11 +54,53 @@ document.addEventListener("mouseup", () => {
 
 decrementBtn.addEventListener("click", function() {
 
+    // 「長押し＋クリック」が重複してカウントがズレるのを防ぐ.4
+    if (isLongPress) return;
+
     if (count > 0) {
         count--;
     }
     
     updateDisplay();
+});
+
+// 減算用の長押しイベント1⃣
+decrementBtn.addEventListener("mousedown", () => {
+
+    // どんな状態でも一旦リセットしてから始めるためのコード
+    clearInterval(intervalId);
+
+    if (isPressing) return;
+    isPressing = true;
+
+    // 「長押し＋クリック」が重複してカウントがズレるのを防ぐ.2
+    isLongPress = false;
+
+    intervalId = setInterval (() => {
+
+        isLongPress = true;
+
+        if (isPressing && count > 0) {
+            count--;
+            updateDisplay();
+        }
+    }, 200);
+});
+
+// ボタンからカーソルが外れてもカウントが止まらないバグを防ぐ
+// decrementBtn.addEventListener("mouseleave", function () {
+//     clearInterval(decrementInterval);
+// });
+
+// 減算用の長押しイベント2⃣-2
+document.addEventListener("mouseup", () => {
+    isPressing = false;
+    isLongPress = false;
+
+    clearInterval(intervalId);
+    // clearInterval(decrementInterval);
+
+    intervalId = null;
 });
 
 resetBtn.addEventListener("click", function() {
