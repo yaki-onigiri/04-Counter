@@ -4,9 +4,13 @@
 
 ## Demo
 
+<https://yaki-onigiri.github.io/04-Counter>
+
 ---
 
 ## Sourcecode
+
+<https://github.com/yaki-onigiri/04-Counter>
 
 ---
 
@@ -51,6 +55,10 @@
 ・長押し時にクリックイベントが重複しないように制御
 ・どのボタンから操作を開始しても、タイマー処理が1つだけ動作するように制御
 
+### 開発中機能
+
+・長押し時間に応じてカウント速度を段階的に加速させる機能（実装中）
+
 ---
 
 ## 設計・実装のポイント
@@ -74,6 +82,10 @@
     ・intervalId を1つに統一し、clearInterval による確実な停止制御を実装
 
     ・ボタン間の操作時にタイマーが重複しないように、mousedown 時に必ず初期化処理を実行
+
+    ・長押し時間を計測し、将来的に速度制御へ拡張できる構造に設計
+
+    ・固定間隔（setInterval）から可変間隔（setTimeout）への移行を前提とした設計に変更中
 
 ---
 
@@ -99,18 +111,24 @@
 
     ・複数イベント（click / mousedown / mouseup）の競合制御
 
+    ・時間（Date.now）を使った状態制御の基礎
+
+    ・setInterval と setTimeout の違いと使い分け
+
+    ・イベント駆動と状態管理を組み合わせたUI制御
+
 ---
 
 ## フォルダ構成
 
 .
 ├── css/
-│    └── style.css
+│   └── style.css
 ├── js/
-│    └── script.js
+│   └── script.js
 ├── docs/
-│    ├── dev-log.md
-│    └── learning-note.md
+│   ├── dev-log.md
+│   └── learning-note.md
 ├── index.html
 └── README.md
 
@@ -118,11 +136,11 @@
 
 ## 今後の改善予定
 
-    ・LocalStorage を使ったデータ保存
+    ・長押し時のカウント速度を段階的に加速させる（現在対応中）
+
+    ・LocalStorage を使ったデータ保存/永続化
 
     ・デザインの改善（UI/UX向上）
-
-    ・長押し時のカウント速度を段階的に加速させる
     
     ・スマートフォン対応（touchイベントの実装）
 

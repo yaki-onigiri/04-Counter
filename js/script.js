@@ -6,12 +6,49 @@ const resetBtn = document.getElementById("reset");
 let count = 0;
 let isPressing = false;
 let intervalId;
-
-// 「長押し＋クリック」が重複してカウントがズレるのを防ぐ.1
 let isLongPress = false;
+
+// +1/-1ボタンの長押し時にカウント速度を段階的に加速させる⓵-1
+let pressStartTime = 0;
+
+let timerId;
 
 function updateDisplay() {
     countEl.textContent = count;
+}
+
+// +1/-1ボタンの長押し時にカウント速度を段階的に加速させる⓶
+function getInterval(duration) {
+
+    if (duration < 1000) return 300;
+        // 1秒未満長押し：最初はゆっくり
+
+    if (duration < 3000) return 100;
+        // 3秒未満長押し：少し早く
+
+    return 50;
+        // 3秒以上：かなり早く
+}
+
+function startCountingIncrement() {
+    const duration = Date.now() - pressStartTime;
+    const interval = getInterval(duration);
+
+    count++;
+    updateDisplay();
+
+    timerId = setTimeout(startCounting, interval);
+}
+
+function startCountingDecrement() {
+    const duration = Date.now() - pressStartTime;
+    const interval = getInterval(duration);
+
+    if (count > 0) {
+        count--;
+        updateDisplay();
+    }
+    intervalId = setTimeout(startCountingDecrement, interval);
 }
 
 incrementBtn.addEventListener("click", function() {
@@ -24,6 +61,9 @@ incrementBtn.addEventListener("click", function() {
 
 incrementBtn.addEventListener("mousedown", () => {
 
+    // // +1/-1ボタンの長押し時にカウント速度を段階的に加速させる⓵-2
+    pressStartTime = Date.now();
+
     // どんな状態でも一旦リセットしてから始めるためのコード
     clearInterval(intervalId);
 
@@ -35,22 +75,8 @@ incrementBtn.addEventListener("mousedown", () => {
 
     isLongPress = false;
 
-    intervalId = setInterval(() => {
-
-        isLongPress = true;
-
-        if (isPressing) {
-            count++;
-            updateDisplay();
-        }
-    }, 200);
+    startCountingIncrement();
 });
-
-// ボタン長押し中にカーソルがボタン外に出たときカウントを停止するコード
-// incrementBtn.addEventListener("mouseleave", () => {
-//     isPressing = false;
-//     clearInterval(intervalId);
-// });
 
 decrementBtn.addEventListener("click", function() {
 
@@ -67,6 +93,9 @@ decrementBtn.addEventListener("click", function() {
 // 減算用の長押しイベント1⃣
 decrementBtn.addEventListener("mousedown", () => {
 
+    // +1/-1ボタンの長押し時にカウント速度を段階的に加速させる⓵-3
+    pressStartTime = Date.now();
+
     // どんな状態でも一旦リセットしてから始めるためのコード
     clearInterval(intervalId);
 
@@ -75,25 +104,15 @@ decrementBtn.addEventListener("mousedown", () => {
 
     // 「長押し＋クリック」が重複してカウントがズレるのを防ぐ.2
     isLongPress = false;
-
-    intervalId = setInterval (() => {
-
-        isLongPress = true;
-
-        if (isPressing && count > 0) {
-            count--;
-            updateDisplay();
-        }
-    }, 200);
 });
-
-// ボタンからカーソルが外れてもカウントが止まらないバグを防ぐ
-// decrementBtn.addEventListener("mouseleave", function () {
-//     clearInterval(decrementInterval);
-// });
 
 // 減算用の長押しイベント2⃣-2
 document.addEventListener("mouseup", () => {
+
+    // // +1/-1ボタンの長押し時にカウント速度を段階的に加速させる⓵-4
+    const duration = Date.now() - pressStartTime;
+    console.log(duration);
+
     isPressing = false;
     isLongPress = false;
 
