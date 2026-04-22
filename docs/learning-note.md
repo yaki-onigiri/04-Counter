@@ -382,3 +382,243 @@
     ・今までは「setInterval で固定速度」だったのが、今後は「setTimeout で毎回速度を変える」ことができる
 
 ===
+
+## 26/04/22
+
+### ①長押しによる連続カウントとクリックの分離
+
+▼ 目的
+
+    クリック（1回だけ増減）と長押し（連続カウント）を正しく分けるため
+
+---
+
+▼ 仕組み
+
+    ・mousedown が押された瞬間に処理を開始するのではなく、一定時間経過後に「長押し」と判定する（今回は0.5秒）
+
+    ・「長押し」と判定された場合のみ、連続カウント処理を開始する
+
+    ・click イベントは「短押し専用」として使う
+
+---
+
+▼ 具体的な方法
+
+    1. mousedown で時間を記録する
+
+    2. setTimeout で0.5秒後に処理を予約
+
+    3. 0.5秒経過後に isLongPress = true にする
+
+    4. そのときだけ「連続カウント関数」を実行する
+
+    5. click 側では、isLongPress を見て処理を止める
+
+---
+
+▼ 使用したコード・技術
+
+    ・incrementBtn.addEventListener("mousedown", () => {
+        pressStartTime = Date.now();
+
+        isPressing = true;
+        isLongPress = false;
+
+        timerId = setTimeout(() => {
+            isLongPress = true;
+            startCountingIncrement();
+        }, 500);
+    });
+
+    ・incrementBtn.addEventListener("click", () => {
+        if (isLongPress) return;
+
+        count++;
+        updateDisplay();
+    });
+    
+---
+
+▼ 重要なポイント
+
+    ・mousedown ですぐに処理を実行してはいけない
+
+    ・「待ち時間」を作ることで、クリックと長押しを分ける
+
+    ・click と mousedown は別イベントなので競合が起きる
+
+---
+
+▼ 学んだこと
+
+    ・"クリック"と"長押し"を分けるには「時間で判定する」必要がある
+
+    ・すぐに処理を書くのではなく、「条件を満たしたときだけ動かす」設計が必要
+
+===
+
+### ② setTimeout を使った連続処理（再帰処理）
+
+▼ 目的
+
+    長押し中にカウントを連続で増減させるため
+
+---
+
+▼ 仕組み
+
+    ・setTimeout の中で同じ関数をもう一度呼び出す
+
+    ・これにより「一定時間ごとに繰り返す処理」を作る
+
+---
+
+▼ 具体的な方法
+
+    1. "カウント処理"を「関数」にする
+
+    2. 処理の最後で setTimeout を使って自分自身を呼び出す
+
+    3. これを繰り返す ⇒ ループになる
+
+---
+
+▼ 使用したコード・技術
+
+    function startCountingIncrement() {
+        const duration = Date.now() - pressStartTime;
+        const interval = getInterval(duration);
+
+        count++;
+        updateDisplay();
+
+        timerId = setTimeout(startCountingIncrement, interval);
+    }
+
+---
+
+▼ 重要なポイント
+
+    ・white や for ではなく、時間を使ったループ
+
+    ・UI更新やイベント処理（mouseup）が止まらない
+
+    ・非同期処理（あとで実行される処理）である
+
+---
+
+▼ 学んだこと
+
+    ・setTimeout を使うことで「止められるループ」を作れる。
+
+    ・"普通のループ"とは違い、ブラウザを止めずに処理できる
+
+===
+
+### ③ タイマーIDの統一とバグの原因
+
+▼ 目的
+
+    連続カウントを正しく停止させるため
+
+---
+
+▼ 仕組み
+
+    ・setTimeout は実行するとIDが返る
+
+    ・そのIDを使って clearTimeout で停止する
+
+    ・同じIDでないと止められない
+
+---
+
+▼ 具体的な方法
+
+    1. timerId という変数1つに統一する
+
+    2. setTimeout の戻り値を必ず代入する
+
+    3. clearTimeout(timerId) で停止する
+
+---
+
+▼ 使用したコード・技術
+
+    let timerId;
+
+    timerId = setTimeout(startCountingIncrement, interval);
+
+    clearTimeout(timerId);
+
+---
+
+▼ 重要なポイント
+
+    ・intervalId と timerId を混ぜるとカウントが止まらなくなる
+
+    ・スペルミスでも完全に動かなくなる（×：timreId　○：timerId）
+
+    ・再帰処理では常に最新のIDを管理する必要がある
+
+---
+
+▼ 学んだこと
+
+    ・タイマーは「開始と停止がセット」であり、同じIDを使わないと制御できない。
+
+    ・変数の統一は、"見た目"だけではなく"動作"にも大きく影響する
+
+===
+
+### ④ 長押し解除（mouseup）で確実に停止する
+
+▼ 目的
+
+    ボタンを離したときに連続カウントを止めるため
+
+---
+
+▼ 仕組み
+
+    ・mouseup を検知したらタイマーを停止する
+
+    ・document に設定することで「取りこぼし」を防ぐ
+
+---
+
+▼ 具体的な方法
+
+    1. document.addEventListener("mouseup", ...) を使う
+
+    2. その中で clearTimeout(timerId) を実行
+
+    3. フラグ（isPressing）もリセットする
+
+---
+
+▼ 使用したコード・技術
+
+    document.addEventListener("mouseup", () => {
+        clearTimeout(timerId);
+        isPressing = false;
+    });
+
+---
+
+▼ 重要なポイント
+
+    ・ボタン外でマウスを離す可能性がある。そのため document にイベントを付ける
+
+    ・停止処理がないと無限ループになる
+
+---
+
+▼ 学んだこと
+
+    イベントは「どこで発火するか」も重要。
+    
+    確実に止めるためには広い範囲（document）で監視する必要がある
+
+===
