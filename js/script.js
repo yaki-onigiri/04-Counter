@@ -9,10 +9,10 @@ let isLongPress = false;
 
 let pressStartTime = 0;
 
-// 長押し時のカウント速度を段階的に加速させる
-// タスク1：setTimeout の管理を統一する
 let timerId;
-clearTimeout(timerId);
+
+// ⓶小修整点：意味がないため削除
+// clearTimeout(timerId);
 
 function updateDisplay() {
     countEl.textContent = count;
@@ -20,11 +20,12 @@ function updateDisplay() {
 
 function getInterval(duration) {
 
-    if (duration < 1000) return 300;
+    // ⓵Task2. getInterval の加速差を分かりやすくする
+    if (duration < 1500) return 300;
 
-    if (duration < 3000) return 100;
+    if (duration < 3500) return 100;
 
-    return 50;
+    return 70;
 
 }
 
@@ -35,10 +36,10 @@ function startCountingIncrement() {
     count++;
     updateDisplay();
 
-    // 長押し時のカウント速度を段階的に加速させる
-    // タスク2：再帰処理を修正
-    // intervalId ⇒ timerId に修正
     timerId = setTimeout(startCountingIncrement, interval);
+
+    // ⓵Task3. 今どの速度段階か、を console に出す（確認用コード）
+    console.log("duration", duration, "interval", interval);
 }
 
 
@@ -51,10 +52,41 @@ function startCountingDecrement() {
         updateDisplay();
     }
     
-    // 長押し時のカウント速度を段階的に加速させる
-    // タスク3：再帰処理を修正
-    // intervalId ⇒ timerId に修正
     timerId = setTimeout(startCountingDecrement, interval);
+}
+
+// ⓶コードの重複整理のためのコード
+// Task1. startCountingIncrement / Decrement を統一する
+function startCounting(step) {
+
+    const duration = Date.now() - pressStartTime;
+    const interval = getInterval(duration);
+
+    count += step;
+
+    if (count < 0) count = 0;
+
+    updateDisplay();
+
+    timerId = setTimeout(() => startCounting(step), interval);
+}
+
+// ⓶コードの重複整理のためのコード
+// Task2. mousedown の長押し開始処理を統一する
+function startLongPress(step) {
+
+    clearTimeout(timerId);
+
+    if (isPressing) return;
+
+    isPressing = true;
+    isLongPress = false;
+
+    timerId = setTimeout(() => {
+        isLongPress = true;
+        pressStartTime = Date.now();
+        startCounting(step);
+    }, 500);
 }
 
 incrementBtn.addEventListener("click", function() {
@@ -65,24 +97,35 @@ incrementBtn.addEventListener("click", function() {
     updateDisplay();
 });
 
+// ⓶コードの重複整理のためのコード
+// Task2. mousedown の長押し開始処理を統一する
+// そのため、mousedown のコードは削除・修正する
+
+// incrementBtn.addEventListener("mousedown", () => {
+
+//     // ⓵「0.5秒の待機時間」を加速計算から除外するため
+//     // Task1. この部分のコードを timerId = setTimeout 内に移す
+//     // pressStartTime = Date.now();
+
+//     clearTimeout(timerId);
+
+//     if (isPressing) return;
+
+//     isPressing = true;
+//     isLongPress = false;
+
+//     timerId = setTimeout(() => {
+//         isLongPress = true;
+
+//         // Task1. この部分のコードを timerId = setTimeout 内に移す
+//         pressStartTime = Date.now();
+
+//         startCountingIncrement();
+//     }, 500);
+// });
+
 incrementBtn.addEventListener("mousedown", () => {
-
-    pressStartTime = Date.now();
-
-    clearTimeout(timerId);
-
-    if (isPressing) return;
-
-    isPressing = true;
-    isLongPress = false;
-
-    // 長押し時のカウント速度を段階的に加速させる
-    // タスク1：setTimeout の管理を統一する
-    // +1ボタン0.5秒長押しで連続カウント機能が発動
-    timerId = setTimeout(() => {
-        isLongPress = true;
-        startCountingIncrement();
-    }, 500);
+    startLongPress(1);
 });
 
 decrementBtn.addEventListener("click", function() {
@@ -96,24 +139,36 @@ decrementBtn.addEventListener("click", function() {
     updateDisplay();
 });
 
+// ⓶コードの重複整理のためのコード
+// Task2. mousedown の長押し開始処理を統一する
+// そのため、mousedown のコードは削除・修正する
+
+// decrementBtn.addEventListener("mousedown", () => {
+
+//     // ⓵「0.5秒の待機時間」を加速計算から除外するため
+//     // Task1. この部分のコードを timerId = setTimeout 内に移す
+//     // pressStartTime = Date.now();
+
+//     clearTimeout(timerId);
+
+//     if (isPressing) return;
+
+//     isPressing = true;
+//     isLongPress = false;
+
+//     timerId = setTimeout(() => {
+//         isLongPress = true;
+
+//         // ⓵「0.5秒の待機時間」を加速計算から除外するため
+//         // Task1. この部分のコードを timerId = setTimeout 内に移す
+//         pressStartTime = Date.now();
+
+//         startCountingDecrement();
+//     }, 500);
+// });
+
 decrementBtn.addEventListener("mousedown", () => {
-
-    pressStartTime = Date.now();
-
-    clearTimeout(timerId);
-
-    if (isPressing) return;
-
-    isPressing = true;
-    isLongPress = false;
-
-    // 長押し時のカウント速度を段階的に加速させる
-    // タスク1：setTimeout の管理を統一する
-    // -1ボタン0.5秒長押しで連続カウント機能が発動
-    timerId = setTimeout(() => {
-        isLongPress = true;
-        startCountingDecrement();
-    }, 500);
+    startLongPress(-1);
 });
 
 document.addEventListener("mouseup", () => {
