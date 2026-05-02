@@ -3,6 +3,18 @@ const incrementBtn = document.getElementById("increment");
 const decrementBtn = document.getElementById("decrement");
 const resetBtn = document.getElementById("reset");
 
+
+
+// Task3-1. コードの意味を見やすくする整理（マジックナンバー）
+const STAGE1_DURATION = 1000;
+const STAGE2_DURATION = 2500;
+
+const STAGE1_INTERVAL = 250;
+const STAGE2_INTERVAL = 130;
+const STAGE3_INTERVAL = 80;
+
+
+
 let count = 0;
 let isPressing = false;
 let isLongPress = false;
@@ -13,17 +25,26 @@ function updateDisplay() {
     countEl.textContent = count;
 }
 
+// Task2. ボタン長押しによるカウント増算・減算の速度の段差を滑らかにする
+// function getInterval(duration) {
+//     if (duration < 1500) return 300;
+//     if (duration < 3500) return 100;
+//     return 70;
+// }
+
+// function getInterval(duration) {
+//     if (duration < 1000) return 250;
+//     if (duration < 2500) return 130;
+//     return 80;
+// }
+
+// Task3-2. コードの意味を見やすくする整理（マジックナンバー）
 function getInterval(duration) {
-
-    // ⓵Task2. getInterval の加速差を分かりやすくする
-    if (duration < 1500) return 300;
-
-    if (duration < 3500) return 100;
-
-    return 70;
+    if (duration < STAGE1_DURATION) return STAGE1_INTERVAL;
+    if (duration < STAGE2_DURATION) return STAGE2_INTERVAL;
+    return STAGE3_INTERVAL;
 }
 
-// Task1. count の増減処理を共通関数にまとめる
 function changeCount(step) {
 
     count += step;
@@ -34,7 +55,6 @@ function changeCount(step) {
     updateDisplay();
 }
 
-// Task2-1. 「click処理」と「長押し連続処理」を changeCount() に差し替える
 function startCounting(step) {
 
     const duration = Date.now() - pressStartTime;
@@ -42,23 +62,10 @@ function startCounting(step) {
 
     changeCount(step);
 
-    timerId = setTimeout(() => startCounting(step), interval);
-
-    // console.log("duration", duration, "interval", interval);
+    timerId = setTimeout(() => {
+        startCounting(step);
+    }, interval);
 }
-
-// Task3-1. 使わなくなった旧関数を削除する
-// function startCountingDecrement() {
-//     const duration = Date.now() - pressStartTime;
-//     const interval = getInterval(duration);
-
-//     if (count > 0) {
-//         count--;
-//         updateDisplay();
-//     }
-    
-//     timerId = setTimeout(startCountingDecrement, interval);
-// }
 
 function startLongPress(step) {
 
@@ -69,9 +76,16 @@ function startLongPress(step) {
     isPressing = true;
     isLongPress = false;
 
+    // ユーザー視点での長押し判定のズレをなくすために、この位置にコードを入力。
+    pressStartTime = Date.now();
+
     timerId = setTimeout(() => {
         isLongPress = true;
-        pressStartTime = Date.now();
+
+        // ここから「長押し継続時間」を測定開始
+        // pressStartTime = Date.now();
+            // ここにこのコードを入力すると、ユーザー視点での長押し判定に0.5秒のズレが生じる。
+
         startCounting(step);
     }, 500);
 }
@@ -80,7 +94,6 @@ incrementBtn.addEventListener("click", function() {
 
     if (isLongPress) return;
 
-    // Task2-2. 「click処理」と「長押し連続処理」を changeCount() に差し替える
     changeCount(1);
 });
 
@@ -92,7 +105,6 @@ decrementBtn.addEventListener("click", function() {
 
     if (isLongPress) return;
 
-    // Task2-3. 「click処理」と「長押し連続処理」を changeCount() に差し替える
     changeCount(-1);
 });
 
@@ -101,10 +113,6 @@ decrementBtn.addEventListener("mousedown", () => {
 });
 
 document.addEventListener("mouseup", () => {
-
-    // Task4. 使わなくなった関数を削除（小修整）
-    // const duration = Date.now() - pressStartTime;
-    // console.log(duration);
 
     isPressing = false;
     isLongPress = false;
