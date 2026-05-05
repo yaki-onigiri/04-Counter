@@ -2,16 +2,69 @@ body {
     text-align: center;
     font-family: sans-serif;
     margin-top: 50px;
+
+    /* Task7. 背景色を追加 */
+    background: #f3f4f6;
 }
 
-h1 {
-    font-size: 48px;
-    margin-bottom: 20px;
+.counter-app {
+    width: 300px;
+    margin: 80px auto;
+    padding: 30px;
+    text-align: center;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+#count {
+    font-size: 64px;
+    font-weight: bold;
+    margin: 25px 0;
 }
 
 button {
-    font-size: 20px;
-    padding: 10px 20px;
-    margin: 5px;
+    padding: 12px 20px;
+    margin: 8px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
     cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.pop {
+    animation: popAnim 0.2s ease;
+}
+
+@keyframes popAnim{
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+#incrementBtn {
+    background: #4caf50;
+    color: white;
+}
+
+#decrementBtn {
+    background: #f44336;
+    color: white;
+}
+
+#resetBtn {
+    background: #777;
+    color: white;
 }
