@@ -68,3 +68,12 @@ button:active {
     background: #777;
     color: white;
 }
+
+/* Task5-1: 現在の状態がわかる視覚フィードバックを追加する */
+.flash-up {
+    color:green;
+}
+
+.flash-down {
+    color: red;
+}
